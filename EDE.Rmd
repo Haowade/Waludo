@@ -1,0 +1,255 @@
+---
+title: "Employee Data Exploration"
+output: html_document
+---
+Exploration of the employee data in  companies.
+
+```{r setup, include=FALSE}
+## Setup
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+##Input & Transformation
+employee <- read.csv("employee.csv")
+employee
+
+employee$company_id <- factor(employee$company_id, levels = c(1,2,3,4,5,6,7,8,9,10,11,12),labels = c("first", "second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth","eleventh","twelveth"))
+```
+
+```{r}
+##Organized Set
+arrange(employee, desc(company_id))
+```
+
+
+```{r}
+##jobs
+ggplot(data = employee) +
+  geom_bar(mapping = aes(x = dept))
+
+```
+There are 6 departments:
+
+Customer Service, Engineering, Marketing, Sales, Data Science, Design.
+
+Customer Service is the largest department, design department is the smallest.
+
+```{r}
+## Companies count
+ggplot(data = employee) +
+  geom_bar(mapping = aes(x = company_id))
+## No. of employee
+count(employee, company_id == "eleventh")
+```
+There are 12 companies, with maximized population difference of 530 times.
+No.of employees:
+1. 8486  
+2. 4222
+3. 2749 
+4. 2062 
+5. 1755 
+6. 1291 
+7. 1224 
+8. 1047 
+9. 961 
+10. 865 
+11. 16 
+12. 24
+
+```{r}
+#Check unique worker in whole system
+length(unique(employee$employee_id)) == nrow(employee)
+```
+No duplication in employee id in the whole system.
+
+```{r}
+#Check unique worker in each company e.g.
+filter(employee, company_id == "first")
+length(unique(employee$employee_id)) == nrow(employee)
+filter(employee, company_id == "second")
+length(unique(employee$employee_id)) == nrow(employee)
+```
+Sample uniqueness check for employee id in companies
+
+```{r}
+#Check unique worker by dept e.g.
+firstcompany <- filter(employee, company_id == "first")
+filter(firstcompany, dept == "design")
+length(unique(firstcompany$employee_id)) == nrow(firstcompany)
+filter(firstcompany, dept == "engineer")
+length(unique(firstcompany$employee_id)) == nrow(firstcompany)
+
+```
+Sample uniqueness check for employee id in a company's departments
+
+```{r}
+##Relation between salary & Seniority / Department
+plotslry <- ggplot(data = employee) + 
+  geom_point(mapping = aes(x = seniority, y = salary, color = dept))
+plotslry + xlim(0, 30)
+
+plotslry2 <- ggplot(data = employee) + 
+  geom_smooth(mapping = aes(x = seniority, y = salary, color = dept),se = FALSE)
+plotslry2 + xlim(0, 30)
+
+plotslry3 <-ggplot(data = employee) + 
+  geom_smooth(mapping = aes(x = seniority, y = salary))
+plotslry3 + xlim(0, 30)
+
+plotslry4 <- ggplot(data = employee) + 
+  geom_smooth(mapping = aes(x = seniority, y = salary, color = company_id), se = FALSE)
+plotslry4 + xlim(0, 30)
+
+sevenyear <- filter(employee, seniority == "7")
+seventeenyear <- filter(employee, seniority == "17")
+```
+
+```{r}
+meanseven <-  mean(sevenyear$salary)
+meanseventeen <-  mean(seventeenyear$salary)
+meandiff <- (meanseven - meanseventeen)
+meanprop <- (meanseven / meanseventeen)
+meandiff
+meanprop
+```
+
+The number of years of experience does influences salary, In companies 1 -11 employees who worked for more than 17 - 18 years earn approximately 55% more than those who worked only for 7 - 8 years, in money this counts as about of $66000. Generally speaking, the salaries increases as the seniority go up.
+
+2 Interesting Observations about the Salary:
+
+Data Scientists & Engineer earn always much more wages through their entire working period at the companies than marketing and sales people. This could be caused by the math & CS pre-requisite for being a Engineer / Data Scientist.
+
+Employees in all departments with seniority between 8 ~ 12 years experience a significant drop in their salaries. This may due to the increasing age of the employees since they may not have adequate time to work overtime while they're still not experienced enough to get promoted.
+
+```{r}
+ geom_smooth(mapping = aes(x = join_date, y = quit_date, color = company_id))
+```
+
+```{r}
+#typical working duration
+period <- difftime(quit_dates,join_dates,units = "days")
+period
+```
+list of working period.
+
+```{r}
+## typical working duration for all departments
+ggplot(data = employeed) + 
+  geom_bar(mapping = aes(x = difftime(quit_date, join_date, units = "days"), color = dept))
+
+## typical working duration for certain department
+engineerman <- filter(employeed,dept == "engineer")
+ggplot(data = engineerman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+
+serviceman <- filter(employeed,dept == "customer_service")
+ggplot(data = serviceman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+
+markertingman <- filter(employeed,dept == "marketing")
+ggplot(data = markertingman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+
+dataman <- filter(employeed,dept == "data_science")
+ggplot(data = dataman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+     
+salesman <- filter(employeed,dept == "sales")
+ggplot(data = salesman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+
+designman <- filter(employeed,dept == "design")
+ggplot(data = designman) + 
+  geom_freqpoly(mapping = aes(x = difftime(quit_date, join_date, units = "days"))) 
+
+## Histogram approach
+designman <- filter(employeed,dept == "design")
+ggplot(data = designman) + 
+  geom_histogram(mapping = aes(x = difftime(quit_date, join_date, units = "days"), binwidth =1000))
+
+## Density
+ggplot(data = employeed) + 
+  geom_density(mapping = aes(x = difftime(quit_date, join_date, units = "days"), color = dept))
+
+designman <- filter(employeed,dept == "design")
+ggplot(data = designman) + 
+  geom_density(mapping = aes(x = difftime(quit_date, join_date, units = "days")))
+```
+We see that for different departments, the typical working period have several peaks, some focused on 450 - 450 days after initial employment, other centered at 1300 days, the proportion (counts) of customer_service employee who left in first 350 - 450 days is much higher than other departments, the departments of longest typicalworking period are data science / engineering departments.
+
+```{r}
+## This is dataset for all employees
+
+## Not changing original data
+employeed <-employee
+
+## Eliminate NA values
+join_dates <- as.Date((join_date))
+quit_dates <- as.Date((quit_date))
+join_dates[is.na(join_date)] = Sys.Date()
+quit_dates[is.na(quit_date)] = Sys.Date()
+
+## Calculate date difference
+difftime(quit_dates,join_dates,units = "days")
+employeed$join_date <- join_dates
+employeed$quit_date <- quit_dates
+
+## Plot date vs. salary
+ggplot(data = employeed) + 
+geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary), se = FALSE)
+
+ggplot(data = employeed) + 
+geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary, color = dept))
+
+## For certain dept
+engineerman <- filter(employeed,dept == "engineer")
+ggplot(data = engineerman) + 
+  geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary))
+
+markertingman <- filter(employeed,dept == "marketing")
+ggplot(data = markertingman) + 
+  geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary))
+```
+The relationship between the pervious working experience (seniority) is explained in the relationship between salary & Seniority part, the more experience the employees are, the higher wage they get. Years of experience before hiring tend to increase the wage of the employees in their job.
+
+```{r}
+## This is the dataset for those who left
+
+ggplot(data = employee) + 
+  geom_point(mapping = aes(x = difftime(quit_date,join_date,units = "days"), y = salary, color = dept))
+
+ggplot(data = employee) + 
+  geom_smooth(mapping = aes(x = difftime(quit_date,join_date,units = "days"), y = salary, color = dept),se =FALSE)
+```
+
+```{r}
+ggplot(data = employee) + 
+geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary, color = dept))
+```
+The typical working period is connected to the salary, we know that departments with lower average wage usually have more employees who left quicker, which give a higher rate of leaving, the lower the salary is, the more likely the employees leave more quickly.
+
+```{r}
+## For faculty members left only
+employee
+
+## Plot date vs. salary
+ggplot(data = employee) + 
+geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary), se = FALSE)
+
+ggplot(data = employee) + 
+geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary, color = dept))
+
+## For certain dept
+engineerman <- filter(employee,dept == "engineer")
+ggplot(data = engineerman) + 
+  geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y = salary))
+
+```
+Low wage across long working period espicially for constumer service department made this department espicially easy to leave companies. We see that the wages for engineering & data science department in companies are gradually increasing as the working period increases, while the wages for sales, sutomer service and marketing departments had minor increase over a long period of the time. Those employees left companies due to the low wage after a long period of time.
+
+Identify those who left:
+
+From the last prompt we see that wages and department are two major factors that affected the typcial working duration of the employee are department and wage in each department. We may say that when the wage couldn't fulfill the employee's expectations (such as below the average), espicially in those departments that has lower wages (sales, marketing, service), the employees would leave typically in 350 - 450 time period or 1200 - 1300 days, which are at about 1 year and 3.5 year working time if we converted to yearscale. The data science, engineering as well as design department are less likely to leave mainly due to their techical skills required by companies, companies may increase the wage to make them stay in the companies, so they are less likely to leave. If we want to identify those who are likely to leave companies, we should focus on group of employees in less tech-skill required departments with working period of 1 year or around 3.5 to 4 years who has low wages that are typically lower than the average.
