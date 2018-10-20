@@ -9,24 +9,24 @@ Exploration of the employee data in  companies.
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(dplyr)
+library(readr)
 ```
 
-```{r}
 ##Input & Transformation
+```{r}
 employee <- read.csv("employee.csv")
 employee
 
 employee$company_id <- factor(employee$company_id, levels = c(1,2,3,4,5,6,7,8,9,10,11,12),labels = c("first", "second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth","eleventh","twelveth"))
 ```
 
-```{r}
 ##Organized Set
+```{r}
 arrange(employee, desc(company_id))
 ```
 
-
-```{r}
 ##jobs
+```{r}
 ggplot(data = employee) +
   geom_bar(mapping = aes(x = dept))
 
@@ -37,6 +37,7 @@ Customer Service, Engineering, Marketing, Sales, Data Science, Design.
 
 Customer Service is the largest department, design department is the smallest.
 
+## Companies count
 ```{r}
 ## Companies count
 ggplot(data = employee) +
@@ -59,14 +60,14 @@ No.of employees:
 11. 16 
 12. 24
 
-```{r}
 #Check unique worker in whole system
+```{r}
 length(unique(employee$employee_id)) == nrow(employee)
 ```
 No duplication in employee id in the whole system.
 
-```{r}
 #Check unique worker in each company e.g.
+```{r}
 filter(employee, company_id == "first")
 length(unique(employee$employee_id)) == nrow(employee)
 filter(employee, company_id == "second")
@@ -74,8 +75,8 @@ length(unique(employee$employee_id)) == nrow(employee)
 ```
 Sample uniqueness check for employee id in companies
 
-```{r}
 #Check unique worker by dept e.g.
+```{r}
 firstcompany <- filter(employee, company_id == "first")
 filter(firstcompany, dept == "design")
 length(unique(firstcompany$employee_id)) == nrow(firstcompany)
@@ -85,8 +86,8 @@ length(unique(firstcompany$employee_id)) == nrow(firstcompany)
 ```
 Sample uniqueness check for employee id in a company's departments
 
-```{r}
 ##Relation between salary & Seniority / Department
+```{r}
 plotslry <- ggplot(data = employee) + 
   geom_point(mapping = aes(x = seniority, y = salary, color = dept))
 plotslry + xlim(0, 30)
@@ -128,13 +129,14 @@ Employees in all departments with seniority between 8 ~ 12 years experience a si
  geom_smooth(mapping = aes(x = join_date, y = quit_date, color = company_id))
 ```
 
-```{r}
 #typical working duration
+```{r}
 period <- difftime(quit_dates,join_dates,units = "days")
 period
 ```
 list of working period.
 
+## typical working duration
 ```{r}
 ## typical working duration for all departments
 ggplot(data = employeed) + 
@@ -180,8 +182,8 @@ ggplot(data = designman) +
 ```
 We see that for different departments, the typical working period have several peaks, some focused on 450 - 450 days after initial employment, other centered at 1300 days, the proportion (counts) of customer_service employee who left in first 350 - 450 days is much higher than other departments, the departments of longest typicalworking period are data science / engineering departments.
 
+##dataset for all employees
 ```{r}
-## This is dataset for all employees
 
 ## Not changing original data
 employeed <-employee
@@ -215,8 +217,8 @@ ggplot(data = markertingman) +
 ```
 The relationship between the pervious working experience (seniority) is explained in the relationship between salary & Seniority part, the more experience the employees are, the higher wage they get. Years of experience before hiring tend to increase the wage of the employees in their job.
 
+##dataset for those who left
 ```{r}
-## This is the dataset for those who left
 
 ggplot(data = employee) + 
   geom_point(mapping = aes(x = difftime(quit_date,join_date,units = "days"), y = salary, color = dept))
@@ -231,6 +233,7 @@ geom_smooth(mapping = aes(x = difftime(quit_date, join_date, units = "days"), y 
 ```
 The typical working period is connected to the salary, we know that departments with lower average wage usually have more employees who left quicker, which give a higher rate of leaving, the lower the salary is, the more likely the employees leave more quickly.
 
+##why employees leave
 ```{r}
 ## For faculty members left only
 employee
